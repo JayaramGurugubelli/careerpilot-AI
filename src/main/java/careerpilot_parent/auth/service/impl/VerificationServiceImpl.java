@@ -1,11 +1,14 @@
 package careerpilot_parent.auth.service.impl;
 
 
+import careerpilot_parent.auth.entity.PasswordResetToken;
 import careerpilot_parent.auth.entity.VerificationToken;
 import careerpilot_parent.auth.exception.EmailAlreadyVerifiedException;
 import careerpilot_parent.auth.exception.TokenExpiredException;
+import careerpilot_parent.auth.repository.PasswordResetTokenRepository;
 import careerpilot_parent.auth.repository.VerificationTokenRepository;
 import careerpilot_parent.auth.service.EmailService;
+import careerpilot_parent.auth.service.PasswordResetService;
 import careerpilot_parent.auth.service.VerificationService;
 import careerpilot_parent.common.exception.InvalidTokenException;
 import careerpilot_parent.common.exception.UserNotFoundException;
@@ -15,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,7 +34,7 @@ public class VerificationServiceImpl implements VerificationService {
 
     private final UserRepository userRepository;
     private final EmailService emailService;
-
+    private final PasswordResetTokenRepository passwordResetService;
     @Value("${app.base-url}")
     private String baseUrl;
 
@@ -163,5 +167,35 @@ public class VerificationServiceImpl implements VerificationService {
         createVerificationToken(user);
 
     }
+    @Override
+    public VerificationToken getByToken(String token) {
+        return verificationTokenRepository.findByToken(token).orElseThrow(() -> new InvalidTokenException("Invalid verification token."));
+    }
 
+    @Override
+    public void markAsUsed(VerificationToken token) {token.setUsed(true);
+        verificationTokenRepository.save(token);
+    }
+    @Override
+    public void createPasswordResetToken(User user) {
+        PasswordResetToken token = PasswordResetToken.builder()
+                .user(user)
+                .token(UUID.randomUUID().toString())
+                .expiryDate(LocalDateTime.now().plusHours(1))
+                .used(false)
+                .build();
+
+        passwordResetService.save(token);
+
+        // send email here
+    }
+    @Override
+    public PasswordResetToken getPasswordResetToken(String token) {
+        return passwordResetService.findByToken(token).orElseThrow(() -> new InvalidTokenException("Invalid password reset token."));
+    }
+    @Override
+    public void markPasswordResetTokenAsUsed(PasswordResetToken token) {
+        token.setUsed(true);
+        passwordResetService.save(token);
+    }
 }

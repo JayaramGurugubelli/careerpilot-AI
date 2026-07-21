@@ -22,31 +22,26 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
      */
     @Override
     public RefreshToken createRefreshToken(User user) {
-        RefreshToken refreshToken =
-                RefreshToken.builder()
 
-                        .user(user)
+        RefreshToken refreshToken = refreshTokenRepository
+                .findByUser(user)
+                .orElse(new RefreshToken());
 
-                        .token(
-                                jwtService.generateRefreshToken(
-                                        new CustomUserDetails(user)
-                                )
-                        )
+        refreshToken.setUser(user);
 
-                        .expiryDate(
-                                LocalDateTime.now()
-                                        .plusSeconds(
-                                                jwtService
-                                                        .getRefreshTokenExpiration()
-                                                        / 1000
-                                        )
-                        )
+        refreshToken.setToken(
+                jwtService.generateRefreshToken(
+                        new CustomUserDetails(user)
+                )
+        );
 
-                        .revoked(false)
+        refreshToken.setExpiryDate(
+                LocalDateTime.now()
+                        .plusSeconds(jwtService.getRefreshTokenExpiration() / 1000)
+        );
 
-                        .build();
-
-
+        refreshToken.setRevoked(false);
+        refreshToken.setExpired(false);
 
         return refreshTokenRepository.save(refreshToken);
     }

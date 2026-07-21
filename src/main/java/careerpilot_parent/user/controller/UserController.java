@@ -9,9 +9,11 @@ import careerpilot_parent.user.dto.response.UserResponse;
 import careerpilot_parent.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,61 +26,45 @@ public class UserController {
      * Logged-in user details
      */
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser(
-            @AuthenticationPrincipal(expression = "user.id") Long userId) {
-
-        return ResponseEntity.ok(
-                userService.getUserById(userId)
-        );
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        return ResponseEntity.ok(userService.getCurrentUser());
     }
 
-    /**
-     * User profile
-     */
-    @GetMapping("/profile")
-    public ResponseEntity<UserProfileResponse> getProfile(
-            @AuthenticationPrincipal(expression = "user.id") Long userId) {
-
-        return ResponseEntity.ok(
-                userService.getUserProfile(userId)
-        );
+    @GetMapping("/me/profile")
+    public ResponseEntity<UserProfileResponse> getCurrentUserProfile() {
+        return ResponseEntity.ok(userService.getCurrentUserProfile());
     }
-
     /**
      * Update profile
      */
-    @PutMapping("/profile")
+    @PutMapping("/me/profile")
     public ResponseEntity<UserProfileResponse> updateProfile(
-            @AuthenticationPrincipal(expression = "user.id") Long userId,
             @Valid @RequestBody UpdateProfileRequest request) {
 
-        return ResponseEntity.ok(
-                userService.updateProfile(userId, request)
-        );
+        return ResponseEntity.ok(userService.updateCurrentUserProfile(request));
     }
 
     /**
      * Update social links
      */
-    @PutMapping("/social-links")
+    @PutMapping("/me/social-links")
     public ResponseEntity<UserProfileResponse> updateSocialLinks(
             @AuthenticationPrincipal(expression = "user.id") Long userId,
             @Valid @RequestBody UpdateSocialLinksRequest request) {
 
         return ResponseEntity.ok(
-                userService.updateSocialLinks(userId, request)
+                userService.updateCurrentUserSocialLinks( request)
         );
     }
 
     /**
      * Upload profile picture
      */
-    @PostMapping("/profile-picture")
+    @PostMapping(value = "/me/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadProfilePicture(
-            @AuthenticationPrincipal(expression = "user.id") Long userId,
-            @Valid @RequestBody UploadProfilePictureRequest request) {
+            @RequestParam("file") MultipartFile file) {
 
-        userService.uploadProfilePicture(userId, request);
+        userService.uploadProfilePicture(file);
 
         return ResponseEntity.ok("Profile picture uploaded successfully.");
     }
@@ -86,11 +72,10 @@ public class UserController {
     /**
      * Delete profile picture
      */
-    @DeleteMapping("/profile-picture")
-    public ResponseEntity<String> deleteProfilePicture(
-            @AuthenticationPrincipal(expression = "user.id") Long userId) {
+    @DeleteMapping("/me/profile-picture")
+    public ResponseEntity<String> deleteProfilePicture() {
 
-        userService.deleteProfilePicture(userId);
+        userService.deleteProfilePicture();
 
         return ResponseEntity.ok("Profile picture deleted successfully.");
     }
@@ -98,11 +83,10 @@ public class UserController {
     /**
      * Change password
      */
-    @PutMapping("/change-password")
-    public ResponseEntity<String> changePassword(
-            @AuthenticationPrincipal(expression = "user.id") Long userId, @Valid @RequestBody ChangePasswordRequest request) {
+    @PutMapping("/me/change-password")
+    public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
 
-        userService.changePassword(userId, request);
+        userService.changePassword(request);
 
         return ResponseEntity.ok("Password changed successfully.");
     }
@@ -110,12 +94,11 @@ public class UserController {
     /**
      * Deactivate account
      */
-    @PutMapping("/deactivate")
+    @PutMapping("/me/deactivate")
     public ResponseEntity<String> deactivateAccount(
-            @AuthenticationPrincipal(expression = "user.id") Long userId,
             @Valid @RequestBody DeactivateAccountRequest request) {
 
-        userService.deactivateAccount(userId, request);
+        userService.deactivateAccount(request);
 
         return ResponseEntity.ok("Account deactivated successfully.");
     }

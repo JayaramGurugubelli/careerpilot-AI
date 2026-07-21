@@ -1,39 +1,29 @@
 package careerpilot_parent.user.service;
 
-import careerpilot_parent.auth.dto.request.*;
-import careerpilot_parent.user.dto.request.*;
-import careerpilot_parent.auth.dto.response.LoginResponse;
-import careerpilot_parent.auth.dto.response.RegisterResponse;
+import careerpilot_parent.user.dto.request.ChangePasswordRequest;
+import careerpilot_parent.user.dto.request.DeactivateAccountRequest;
+import careerpilot_parent.user.dto.request.UpdateProfileRequest;
+import careerpilot_parent.user.dto.request.UpdateSocialLinksRequest;
+import careerpilot_parent.user.dto.request.UploadProfilePictureRequest;
 import careerpilot_parent.user.dto.response.UserProfileResponse;
 import careerpilot_parent.user.dto.response.UserResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
-    RegisterResponse register(RegisterRequest registerRequest);
 
-    LoginResponse login(LoginRequest loginRequest);
+    void changePassword(ChangePasswordRequest request);
 
-    void logout(LogoutRequest logoutRequest);
-
-    void verifyEmail(VerifyEmailRequest verifyEmailRequest);
-
-    void forgotPassword(ForgotPasswordRequest forgotPasswordRequest);
-
-    void resetPassword(ResetPasswordRequest resetPasswordRequest);
-
-    void changePassword(Long userId,ChangePasswordRequest changePasswordRequest);
-
-    UserResponse getUserById(Long userId);
-
+    UserResponse getCurrentUser();
+    UserProfileResponse getCurrentUserProfile();
     UserProfileResponse getUserProfile(Long userId);
 
-    UserProfileResponse updateProfile(Long userId,UpdateProfileRequest updateProfileRequest);
+    UserProfileResponse updateProfile(UpdateProfileRequest request);
+    UserProfileResponse updateCurrentUserSocialLinks(UpdateSocialLinksRequest request);
+    UserProfileResponse updateSocialLinks( UpdateSocialLinksRequest request);
+    UserProfileResponse updateCurrentUserProfile(UpdateProfileRequest request);
+    void uploadProfilePicture(MultipartFile file);
 
-    UserProfileResponse updateSocialLinks(Long userId,UpdateSocialLinksRequest updateSocialLinksRequest);
+    void deleteProfilePicture();
 
-    void uploadProfilePicture(Long userId, UploadProfilePictureRequest request);
-
-    void deleteProfilePicture(Long userId);
-
-    void deactivateAccount(Long userId, DeactivateAccountRequest request);
-
+    void deactivateAccount( DeactivateAccountRequest request);
 }

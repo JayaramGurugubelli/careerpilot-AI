@@ -317,36 +317,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleException(
+            Exception ex,
+            HttpServletRequest request) {
 
+        ex.printStackTrace();
 
-        ErrorResponse response =
-                ErrorResponse.builder()
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
 
-                        .timestamp(LocalDateTime.now())
-
-                        .status(
-                                HttpStatus.INTERNAL_SERVER_ERROR.value()
-                        )
-
-                        .error(
-                                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()
-                        )
-
-                        .message(
-                                "Something went wrong. Please try again."
-                        )
-
-                        .path(
-                                request.getRequestURI()
-                        )
-
-                        .build();
-
-
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(response);
-
     }
 }

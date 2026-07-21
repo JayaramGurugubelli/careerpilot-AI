@@ -6,6 +6,7 @@ import careerpilot_parent.common.exception.UserAlreadyExistsException;
 import careerpilot_parent.common.exception.UserNotFoundException;
 import careerpilot_parent.security.jwt.JwtService;
 import careerpilot_parent.security.model.CustomUserDetails;
+import careerpilot_parent.security.util.SecurityUtils;
 import careerpilot_parent.shared.enums.AccountStatus;
 import careerpilot_parent.shared.enums.RoleName;
 import careerpilot_parent.user.dto.request.*;
@@ -28,8 +29,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -39,95 +43,16 @@ public class UserServiceImpl implements UserService {
     private final UserProfileRepository userProfileRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final SecurityUtils securityUtils;
 //    private final JwtService jwtService;
 //    private final AuthenticationManager authenticationManager;
 //    private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    @Transactional
-    @Override
-    public RegisterResponse register(RegisterRequest registerRequest) {
-        if(userRepository.existsByUsername(registerRequest.getUsername())){
-            throw new UserAlreadyExistsException("Username already exists.");
-        }
-        if(userRepository.existsByEmail(registerRequest.getEmail())){
-            throw new UserAlreadyExistsException("Email already exists.");
-        }
-        if(userRepository.existsByPhoneNumber(registerRequest.getPhoneNumber())){
-            throw new UserAlreadyExistsException("Phone number already exists.");
-        }
-        User user = userMapper.toEntity(registerRequest);
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        User savedUser = userRepository.save(user);
-        Role studentRole=roleRepository.findByName(RoleName.STUDENT).orElseThrow(
-                ()-> new ResourceNotFoundException("Default role STUDENT not found."));
-        UserRole userRole = UserRole.builder()
-                .user(savedUser)
-                .role(studentRole)
-                .build();
-
-        userRoleRepository.save(userRole);
-        UserProfile profile = UserProfile.builder()
-                .user(savedUser)
-                .build();
-
-        userProfileRepository.save(profile);
-        return RegisterResponse.builder()
-                .userId(savedUser.getId())
-                .username(savedUser.getUsername())
-                .email(savedUser.getEmail())
-                .emailVerificationRequired(true)
-                .message("Registration successful. Please verify your email.")
-                .build();
-
-    }
 
     @Override
-    public LoginResponse login(LoginRequest loginRequest) {
-        Authentication authentication=authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsernameOrEmail(),
-                        loginRequest.getPassword()
-                )
-        );
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        User user = userDetails.getUser();
-
-        String accessToken = jwtService.generateAccessToken(userDetails);
-
-        String refreshToken = jwtService.generateRefreshToken(userDetails);
-
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .user(userMapper.toUserResponse(user))
-                .build();
-    }
-
-    @Override
-    public void logout(LogoutRequest logoutRequest) {
-
-    }
-
-    @Override
-    public void verifyEmail(VerifyEmailRequest verifyEmailRequest) {
-
-    }
-
-    @Override
-    public void forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
-
-    }
-
-    @Override
-    public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
-
-    }
-
-    @Override
-    public void changePassword(Long userId,ChangePasswordRequest changePasswordRequest) {
+    public void changePassword(ChangePasswordRequest changePasswordRequest) {
+        Long userId = securityUtils.getCurrentUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new UserNotFoundException("User not found."));
@@ -154,13 +79,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse getUserById(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()->
-                new UserNotFoundException("User not found with id : " + userId));
-        return userMapper.toUserResponse(user);
-    }
-
-    @Override
     public UserProfileResponse getUserProfile(Long userId) {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() ->
@@ -171,7 +89,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserProfileResponse updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
+    public UserProfileResponse updateProfile(UpdateProfileRequest updateProfileRequest) {
+        Long userId = securityUtils.getCurrentUserId();
             User user = userRepository.findById(userId)
                     .orElseThrow(() ->
                             new UserNotFoundException("User not found."));
@@ -194,7 +113,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserProfileResponse updateSocialLinks(Long userId, UpdateSocialLinksRequest updateSocialLinksRequest) {
+    public UserProfileResponse updateSocialLinks(UpdateSocialLinksRequest updateSocialLinksRequest) {
+        Long userId = securityUtils.getCurrentUserId();
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new UserNotFoundException("Profile not found."));
@@ -207,18 +127,39 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void uploadProfilePicture(Long userId, UploadProfilePictureRequest request) {
+    @Transactional
+    public void uploadProfilePicture(MultipartFile file) {
 
-    }
+        Long userId = securityUtils.getCurrentUserId();
 
-    @Override
-    public void deleteProfilePicture(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found."));
 
+        user.setProfilePicture(file);
+
+        userRepository.save(user);
     }
 
     @Override
     @Transactional
-    public void deactivateAccount(Long userId, DeactivateAccountRequest request) {
+    public void deleteProfilePicture() {
+
+        Long userId = securityUtils.getCurrentUserId();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found."));
+
+        user.setProfilePicture(null);
+
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void deactivateAccount( DeactivateAccountRequest request) {
+        Long userId = securityUtils.getCurrentUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new UserNotFoundException("User not found."));
@@ -235,5 +176,55 @@ public class UserServiceImpl implements UserService {
         user.setAccountStatus(AccountStatus.DEACTIVATED);
 
         userRepository.save(user);
+    }
+    @Override
+    public UserResponse getCurrentUser() {
+
+        User user = securityUtils.getCurrentUser();
+
+        return userMapper.toUserResponse(user);
+    }
+    @Override
+    public UserProfileResponse getCurrentUserProfile() {
+
+        Long userId = securityUtils.getCurrentUserId();
+
+        UserProfile profile = userProfileRepository.findByUserId(userId).orElseThrow(() -> new UserNotFoundException("User profile not found."));
+
+        return userMapper.toUserProfileResponse(profile);
+    }
+    @Override
+    @Transactional
+    public UserProfileResponse updateCurrentUserProfile(UpdateProfileRequest request) {
+
+        Long userId = securityUtils.getCurrentUserId();
+
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                        new UserNotFoundException("User not found."));
+
+        UserProfile profile = userProfileRepository.findByUserId(userId).orElseThrow(() ->
+                        new UserNotFoundException("Profile not found."));
+
+        userMapper.updateUser(user, request);
+        userMapper.updateUserProfile(profile, request);
+
+        userRepository.save(user);
+        userProfileRepository.save(profile);
+
+        return userMapper.toUserProfileResponse(profile);
+    }
+    @Override
+    @Transactional
+    public UserProfileResponse updateCurrentUserSocialLinks(UpdateSocialLinksRequest request) {
+
+        Long userId = securityUtils.getCurrentUserId();
+
+        UserProfile profile = userProfileRepository.findByUserId(userId).orElseThrow(() -> new UserNotFoundException("Profile not found."));
+
+        userMapper.updateSocialLinks(profile, request);
+
+        userProfileRepository.save(profile);
+
+        return userMapper.toUserProfileResponse(profile);
     }
 }

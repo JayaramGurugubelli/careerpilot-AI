@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.HashSet;
 import java.util.Set;
 @Entity
@@ -82,7 +84,7 @@ public class User extends BaseEntity {
     //Profile
 
     @Column(name = "profile_picture")
-    private String profilePicture;
+    private MultipartFile profilePicture;
 
     @Column(length = ValidationConstants.BIO_MAX)
     private String bio;

@@ -3,6 +3,7 @@ package careerpilot_parent.auth.controller;
 
 import careerpilot_parent.auth.dto.request.*;
 import careerpilot_parent.auth.dto.response.AuthResponse;
+import careerpilot_parent.auth.dto.response.LoginResponse;
 import careerpilot_parent.auth.dto.response.RefreshTokenResponse;
 import careerpilot_parent.auth.dto.response.RegisterResponse;
 
@@ -59,11 +60,7 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
-            @Valid @RequestBody LoginRequest request
-    ) {
-
-
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(
                 authService.login(request)
         );

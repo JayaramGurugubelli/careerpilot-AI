@@ -26,6 +26,7 @@ public class CustomUserDetails implements UserDetails {
 
         Set<UserRole> userRoles = user.getRoles();
 
+
         return userRoles.stream()
                 .map(UserRole::getRole)
                 .map(Role::getName)

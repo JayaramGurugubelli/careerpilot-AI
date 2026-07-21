@@ -1,6 +1,7 @@
 package careerpilot_parent.user.dto.request;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -8,5 +9,5 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UploadProfilePictureRequest {
-    private String profilePicture;
+    MultipartFile file;
 }
