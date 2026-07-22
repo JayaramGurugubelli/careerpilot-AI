@@ -128,7 +128,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void uploadProfilePicture(MultipartFile file) {
+    public void uploadProfilePicture(String file) {
 
         Long userId = securityUtils.getCurrentUserId();
 

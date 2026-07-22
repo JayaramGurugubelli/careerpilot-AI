@@ -84,7 +84,7 @@ public class User extends BaseEntity {
     //Profile
 
     @Column(name = "profile_picture")
-    private MultipartFile profilePicture;
+    private String profilePicture;
 
     @Column(length = ValidationConstants.BIO_MAX)
     private String bio;

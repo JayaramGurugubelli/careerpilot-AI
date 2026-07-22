@@ -21,7 +21,7 @@ public interface UserService {
     UserProfileResponse updateCurrentUserSocialLinks(UpdateSocialLinksRequest request);
     UserProfileResponse updateSocialLinks( UpdateSocialLinksRequest request);
     UserProfileResponse updateCurrentUserProfile(UpdateProfileRequest request);
-    void uploadProfilePicture(MultipartFile file);
+    void uploadProfilePicture(String file);
 
     void deleteProfilePicture();
 

@@ -2,6 +2,7 @@ package careerpilot_parent.user.dto.response;
 
 import careerpilot_parent.shared.enums.AccountStatus;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter

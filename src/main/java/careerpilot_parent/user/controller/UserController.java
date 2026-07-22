@@ -62,7 +62,7 @@ public class UserController {
      */
     @PostMapping(value = "/me/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadProfilePicture(
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") String file) {
 
         userService.uploadProfilePicture(file);
 
