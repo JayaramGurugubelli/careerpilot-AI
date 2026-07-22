@@ -23,7 +23,9 @@ import careerpilot_parent.common.exception.UserNotFoundException;
 import careerpilot_parent.security.jwt.JwtService;
 
 import careerpilot_parent.user.entity.User;
+import careerpilot_parent.user.entity.UserProfile;
 import careerpilot_parent.user.mapper.UserMapper;
+import careerpilot_parent.user.repository.UserProfileRepository;
 import careerpilot_parent.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -48,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     private final UserRepository userRepository;
-
+    private final UserProfileRepository userProfileRepository;
     private final PasswordEncoder passwordEncoder;
 
     private final JwtService jwtService;
@@ -85,7 +87,11 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
+        UserProfile profile = UserProfile.builder()
+                .user(savedUser)
+                .build();
 
+        userProfileRepository.save(profile);
         verificationService.createVerificationToken(savedUser);
 
         return RegisterResponse.builder()

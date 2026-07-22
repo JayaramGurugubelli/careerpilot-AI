@@ -202,8 +202,14 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId).orElseThrow(() ->
                         new UserNotFoundException("User not found."));
 
-        UserProfile profile = userProfileRepository.findByUserId(userId).orElseThrow(() ->
-                        new UserNotFoundException("Profile not found."));
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    UserProfile newProfile = UserProfile.builder()
+                            .user(user)
+                            .build();
+
+                    return userProfileRepository.save(newProfile);
+                });
 
         userMapper.updateUser(user, request);
         userMapper.updateUserProfile(profile, request);

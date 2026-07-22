@@ -44,8 +44,8 @@ public class UserMapper {
     public UserProfileResponse toUserProfileResponse(UserProfile profile) {
 
         return UserProfileResponse.builder()
-                .dateOfBirth(LocalDate.from(profile.getDateOfBirth()))
-                .gender(String.valueOf(profile.getGender()))
+                .dateOfBirth(profile.getDateOfBirth() == null ? null : profile.getDateOfBirth().toLocalDate())
+                .gender(profile.getGender() == null ? null : profile.getGender().name())
                 .city(profile.getCity())
                 .state(profile.getState())
                 .country(profile.getCountry())
@@ -61,9 +61,8 @@ public class UserMapper {
                 .build();
     }
     public void updateUserProfile(UserProfile profile, UpdateProfileRequest request) {
-
-        profile.setDateOfBirth(request.getDateOfBirth().atStartOfDay());
-        profile.setGender(Gender.valueOf(request.getGender()));
+        profile.setDateOfBirth(request.getDateOfBirth() == null ? null : request.getDateOfBirth().atStartOfDay());
+        profile.setGender(request.getGender() == null ? null : Gender.valueOf(request.getGender()));
         profile.setCity(request.getCity());
         profile.setState(request.getState());
         profile.setCountry(request.getCountry());
