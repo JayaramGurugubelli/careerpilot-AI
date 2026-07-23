@@ -2,6 +2,7 @@ package careerpilot_parent.user.entity;
 import careerpilot_parent.common.constants.ValidationConstants;
 import careerpilot_parent.common.entity.BaseEntity;
 import careerpilot_parent.shared.enums.AccountStatus;
+import careerpilot_parent.student.entity.Student;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -108,5 +109,10 @@ public class User extends BaseEntity {
             fetch = FetchType.LAZY
     )
     private UserProfile userProfile;
-
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY
+    )
+    private Student student;
 }

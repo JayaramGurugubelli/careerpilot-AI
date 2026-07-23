@@ -38,9 +38,7 @@ public class UserController {
      * Update profile
      */
     @PutMapping("/me/profile")
-    public ResponseEntity<UserProfileResponse> updateProfile(
-            @Valid @RequestBody UpdateProfileRequest request) {
-
+    public ResponseEntity<UserProfileResponse> updateProfile(@Valid @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(userService.updateCurrentUserProfile(request));
     }
 
@@ -48,10 +46,7 @@ public class UserController {
      * Update social links
      */
     @PutMapping("/me/social-links")
-    public ResponseEntity<UserProfileResponse> updateSocialLinks(
-            @AuthenticationPrincipal(expression = "user.id") Long userId,
-            @Valid @RequestBody UpdateSocialLinksRequest request) {
-
+    public ResponseEntity<UserProfileResponse> updateSocialLinks(@AuthenticationPrincipal(expression = "user.id") Long userId, @Valid @RequestBody UpdateSocialLinksRequest request) {
         return ResponseEntity.ok(
                 userService.updateCurrentUserSocialLinks( request)
         );
@@ -61,8 +56,7 @@ public class UserController {
      * Upload profile picture
      */
     @PostMapping(value = "/me/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadProfilePicture(
-            @RequestParam("file") String file) {
+    public ResponseEntity<String> uploadProfilePicture(@RequestParam("file") String file) {
 
         userService.uploadProfilePicture(file);
 
@@ -95,8 +89,7 @@ public class UserController {
      * Deactivate account
      */
     @PutMapping("/me/deactivate")
-    public ResponseEntity<String> deactivateAccount(
-            @Valid @RequestBody DeactivateAccountRequest request) {
+    public ResponseEntity<String> deactivateAccount(@Valid @RequestBody DeactivateAccountRequest request) {
 
         userService.deactivateAccount(request);
 

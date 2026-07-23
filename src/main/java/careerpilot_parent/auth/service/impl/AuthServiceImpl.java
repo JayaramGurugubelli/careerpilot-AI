@@ -22,12 +22,17 @@ import careerpilot_parent.common.exception.UserAlreadyExistsException;
 import careerpilot_parent.common.exception.UserNotFoundException;
 import careerpilot_parent.security.jwt.JwtService;
 
+import careerpilot_parent.shared.enums.RoleName;
+import careerpilot_parent.user.entity.Role;
 import careerpilot_parent.user.entity.User;
 import careerpilot_parent.user.entity.UserProfile;
+import careerpilot_parent.user.entity.UserRole;
 import careerpilot_parent.user.mapper.UserMapper;
+import careerpilot_parent.user.repository.RoleRepository;
 import careerpilot_parent.user.repository.UserProfileRepository;
 import careerpilot_parent.user.repository.UserRepository;
 
+import careerpilot_parent.user.repository.UserRoleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -64,8 +69,10 @@ public class AuthServiceImpl implements AuthService {
     private final VerificationService verificationService;
 
     private final UserMapper userMapper;
-
+    private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
     @Override
+    @Transactional
     public RegisterResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -76,6 +83,7 @@ public class AuthServiceImpl implements AuthService {
             throw new UserAlreadyExistsException("Username already exists");
         }
 
+        // Create User
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -84,14 +92,31 @@ public class AuthServiceImpl implements AuthService {
                 .phoneNumber(request.getPhoneNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .emailVerified(false)
+                .enabled(true)
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        // Assign STUDENT role
+        Role studentRole = roleRepository.findByName(RoleName.STUDENT)
+                .orElseThrow(() ->
+                        new RuntimeException("STUDENT role not found in database"));
+
+        UserRole userRole = UserRole.builder()
+                .user(savedUser)
+                .role(studentRole)
+                .build();
+
+        userRoleRepository.save(userRole);
+
+        // Create User Profile
         UserProfile profile = UserProfile.builder()
                 .user(savedUser)
                 .build();
 
         userProfileRepository.save(profile);
+
+        // Email verification
         verificationService.createVerificationToken(savedUser);
 
         return RegisterResponse.builder()
